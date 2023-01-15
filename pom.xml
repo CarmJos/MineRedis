@@ -3,6 +3,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <modules>
+        <module>api</module>
+        <module>core</module>
+
+        <module>platform/bukkit</module>
+        <module>platform/bungee</module>
+        <module>platform/velocity</module>
+
+        <module>plugin</module>
+    </modules>
     <properties>
         <project.jdk.version>8</project.jdk.version>
         <maven.compiler.source>${project.jdk.version}</maven.compiler.source>
@@ -21,7 +32,7 @@
     <name>MineRedis</name>
     <description>适用于Redis的独立运行库插件，支持多种服务端，适用于MineCraft全版本。</description>
     <url>https://github.com/CarmJos/MineRedis</url>
-    
+
     <developers>
         <developer>
             <id>CarmJos</id>
@@ -32,16 +43,6 @@
                 <role>Main Developer</role>
                 <role>Designer</role>
             </roles>
-        </developer>
-        <developer>
-            <id>Ghost-Chu</id>
-            <name>鬼畜</name>
-            <url>https://github.com/Ghost-Chu/</url>
-        </developer>
-        <developer>
-            <id>huanmeng_qwq</id>
-            <name>幻梦</name>
-            <url>https://github.com/huanmeng-qwq/</url>
         </developer>
     </developers>
 
@@ -78,6 +79,15 @@
         <repository>
             <id>aikar</id>
             <url>https://repo.aikar.co/content/groups/aikar/</url>
+        </repository>
+
+        <repository>
+            <id>sonatype-snapshots</id>
+            <name>Sonatype Snapshot Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
 
         <repository>
@@ -118,7 +128,7 @@
                 <!-- https://github.com/lettuce-io/lettuce-core -->
                 <groupId>io.lettuce</groupId>
                 <artifactId>lettuce-core</artifactId>
-                <version>${dependency.lettuce.version}</version>
+                <version>${deps.lettuce.version}</version>
             </dependency>
 
         </dependencies>

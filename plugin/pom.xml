@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cc.carm.plugin</groupId>
+        <artifactId>mineredis-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <properties>
+        <maven.compiler.source>${project.jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${project.jdk.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+    <artifactId>mineredis-plugin</artifactId>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>mineredis-platform-bukkit</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>mineredis-platform-bungee</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>mineredis-platform-velocity</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <finalName>${project.parent.name}-${project.parent.version}</finalName>
+                    <outputDirectory>${project.parent.basedir}/.asset/</outputDirectory>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.bstats</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.bstats</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.json</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.json</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>cc.carm.lib.easyplugin</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.easyplugin</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>cc.carm.lib.githubreleases4j</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.githubreleases4j</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>cc.carm.lib.configuration</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.configuration</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.bspfsystems.yamlconfiguration</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.configuration.yaml
+                            </shadedPattern> <!-- Replace this -->
+                        </relocation>
+                        <relocation>
+                            <pattern>org.yaml.snakeyaml</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.yaml</shadedPattern> <!-- Replace this -->
+                        </relocation>
+
+                        <relocation>
+                            <pattern>co.aikar.commands</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.acf</shadedPattern> <!-- Replace this -->
+                        </relocation>
+                        <relocation>
+                            <pattern>co.aikar.locales</pattern>
+                            <shadedPattern>cc.carm.plugin.minesql.lib.locales</shadedPattern> <!-- Replace this -->
+                        </relocation>
+
+                    </relocations>
+                    <filters>
+                        <filter>
+                            <artifact>co.aikar:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                <exclude>META-INF/*.txt</exclude>
+                                <exclude>acf-core*.properties</exclude>
+                                <exclude>acf-minecraft*.properties</exclude>
+                            </excludes>
+                        </filter>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                <exclude>META-INF/*.txt</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>README</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

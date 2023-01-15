@@ -1,0 +1,6 @@
+&d   __  ____          &f___         ___
+&d  /  |/  (_)__  ___ &f/ _ \___ ___/ (_)__
+&d / /|_/ / / _ \/ -_)&f , _/ -_) _  / (_-<
+&d/_/  /_/_/_//_/\__/&f_/|_|\__/\_,_/_/___/
+&8# &dMine&fRedis &8&o(based on lettuce-core) &7v&f${project.version}
+&8- &7查看更多信息请访问项目主页&f https://github.com/CarmJos/MineRedis
