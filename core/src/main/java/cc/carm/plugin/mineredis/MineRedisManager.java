@@ -2,7 +2,7 @@ package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
-import cc.carm.plugin.mineredis.api.message.RedisReceivedMessage;
+import cc.carm.plugin.mineredis.api.message.RedisMessage;
 import cc.carm.plugin.mineredis.handler.RedisByteCodec;
 import cc.carm.plugin.mineredis.handler.RedisSubListener;
 import com.google.common.io.ByteArrayDataOutput;
@@ -68,7 +68,7 @@ public class MineRedisManager implements RedisManager {
                     .forEach(listeners::add);
         }
 
-        listeners.forEach(listener -> listener.handle(new RedisReceivedMessage(channel, source, timestamp, ByteStreams.newDataInput(data))));
+        listeners.forEach(listener -> listener.handle(new RedisMessage(channel, source, timestamp, ByteStreams.newDataInput(data))));
     }
 
     @Override

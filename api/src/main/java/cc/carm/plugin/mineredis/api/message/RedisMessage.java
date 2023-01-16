@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class RedisReceivedMessage {
+public class RedisMessage {
 
     protected final @NotNull String channel;
     protected final @NotNull String sourceServerID;
@@ -14,8 +14,8 @@ public class RedisReceivedMessage {
 
     protected final ByteArrayDataInput data;
 
-    public RedisReceivedMessage(@NotNull String channel, @NotNull String sourceServerID,
-                                long timestamp, ByteArrayDataInput data) {
+    public RedisMessage(@NotNull String channel, @NotNull String sourceServerID,
+                        long timestamp, ByteArrayDataInput data) {
         this.channel = channel;
         this.sourceServerID = sourceServerID;
         this.timestamp = timestamp;

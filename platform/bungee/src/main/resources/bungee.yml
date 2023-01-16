@@ -1,0 +1,8 @@
+main: cc.carm.plugin.mineredis.MineRedisBungee
+name: MineRedis
+version: ${project.version}
+
+website: ${project.url}
+description: ${project.description}
+
+author: "CarmJos"
