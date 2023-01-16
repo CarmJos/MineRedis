@@ -43,12 +43,6 @@
 
 # version
 - 查看当前插件、核心库(lettuce-core)与连接池依赖版本。
-
-# list
-- 列出当前所有的数据源管理器与相关信息。
-
-# info <数据源名称>
-- 查看指定数据源的统计信息与当前仍未关闭的查询。
 ```
 
 ## 开发
@@ -128,8 +122,7 @@ dependencies {
 
 本插件接口入口类为 `MineRedis` ，更多方法详见 [MineRedis-Javadoc](https://carmjos.github.io/MineRedis/) 。
 
-关于 LettuceRedis的使用方法，请详见 [Lettuce开发文档](https://github.com/lettuce-io/lettuce-core/wiki) 。
-
+关于 **lettuce-core** 的使用方法，请详见 [Lettuce开发文档](https://github.com/lettuce-io/lettuce-core/wiki) 。
 
 <details>
   <summary>点击查看简单实例</summary>
