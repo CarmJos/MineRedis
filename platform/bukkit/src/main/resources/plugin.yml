@@ -1,0 +1,13 @@
+main: cc.carm.plugin.mineredis.MineRedisBukkit
+version: ${project.version}
+
+prefix: MineRedis
+name: MineRedis
+load: STARTUP
+
+website: ${project.url}
+description: ${project.description}
+authors:
+  - CarmJos
+
+api-version: 1.13

@@ -46,7 +46,7 @@
         <!--suppress VulnerableLibrariesLocal -->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>minesql-core</artifactId>
+            <artifactId>mineredis-core</artifactId>
             <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>

@@ -73,41 +73,41 @@
                     <relocations>
                         <relocation>
                             <pattern>org.bstats</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.bstats</shadedPattern>
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.bstats</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.json</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.json</shadedPattern>
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.json</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>cc.carm.lib.easyplugin</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.easyplugin</shadedPattern>
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.easyplugin</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>cc.carm.lib.githubreleases4j</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.githubreleases4j</shadedPattern>
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.githubreleases4j</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>cc.carm.lib.configuration</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.configuration</shadedPattern>
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.configuration</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.bspfsystems.yamlconfiguration</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.configuration.yaml
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.configuration.yaml
                             </shadedPattern> <!-- Replace this -->
                         </relocation>
                         <relocation>
                             <pattern>org.yaml.snakeyaml</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.yaml</shadedPattern> <!-- Replace this -->
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.yaml</shadedPattern> <!-- Replace this -->
                         </relocation>
 
                         <relocation>
                             <pattern>co.aikar.commands</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.acf</shadedPattern> <!-- Replace this -->
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.acf</shadedPattern> <!-- Replace this -->
                         </relocation>
                         <relocation>
                             <pattern>co.aikar.locales</pattern>
-                            <shadedPattern>cc.carm.plugin.minesql.lib.locales</shadedPattern> <!-- Replace this -->
+                            <shadedPattern>cc.carm.plugin.mineredis.lib.locales</shadedPattern> <!-- Replace this -->
                         </relocation>
 
                     </relocations>

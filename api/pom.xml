@@ -53,9 +53,17 @@
 
     <dependencies>
 
+        <!--suppress VulnerableLibrariesLocal -->
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.1-jre</version>
             <scope>compile</scope>
         </dependency>
 
