@@ -1,14 +1,15 @@
 package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
-import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
 import cc.carm.plugin.mineredis.api.message.RedisMessage;
+import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
 import cc.carm.plugin.mineredis.handler.RedisByteCodec;
 import cc.carm.plugin.mineredis.handler.RedisSubListener;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
@@ -16,7 +17,6 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.resource.ClientResources;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,7 +101,7 @@ public class MineRedisManager implements RedisManager {
 
     @Override
     public void subscribePattern(@NotNull String channelPattern, @NotNull String... morePatterns) {
-        subConn.sync().psubscribe();
+        subConn.sync().psubscribe(channelPattern);
         if (morePatterns.length > 0) subConn.sync().psubscribe(morePatterns);
     }
 
@@ -113,47 +113,65 @@ public class MineRedisManager implements RedisManager {
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public long publish(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+        return pubConn.sync().publish(channel, writeMessages(byteOutput));
+    }
+
+    @Override
+    @SuppressWarnings("UnstableApiUsage")
+    public long publish(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+        ByteArrayDataOutput stream = ByteStreams.newDataOutput();
+        byteOutput.accept(stream);
+        return publish(channel, stream);
+    }
+
+    public RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+        return pubConn.async().publish(channel, writeMessages(byteOutput));
+    }
+
+    @Override
+    @SuppressWarnings("UnstableApiUsage")
+    public RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+        ByteArrayDataOutput stream = ByteStreams.newDataOutput();
+        byteOutput.accept(stream);
+        return publishAsync(channel, stream);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    protected byte[] writeMessages(@NotNull ByteArrayDataOutput byteOutput) {
         ByteArrayDataOutput stream = ByteStreams.newDataOutput();
         stream.writeUTF(MineRedis.getServerID()); // 在头部写入本节点的ID
         stream.writeLong(System.currentTimeMillis()); // 在头部写入发送时间
         stream.write(byteOutput.toByteArray()); // 写入用户传入的内容
-        return pubConn.sync().publish(channel, stream.toByteArray());
+        return stream.toByteArray();
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
-    public long publish(@NotNull String channel, @Nullable Consumer<ByteArrayDataOutput> byteOutput) {
-        ByteArrayDataOutput stream = ByteStreams.newDataOutput();
-        if (byteOutput != null) byteOutput.accept(stream);
-        return publish(channel, stream);
-    }
-
-    @Override
-    public void registerGlobalListener(@NotNull RedisMessageListener listener) {
+    public void registerGlobalListener(@NotNull RedisMessageListener listener, @NotNull RedisMessageListener... more) {
         globalListeners.add(listener);
+        Arrays.stream(more).forEach(c -> globalListeners.add(listener));
+
     }
 
     @Override
-    public void registerChannelListener(@NotNull RedisMessageListener handler, @NotNull String channel, @NotNull String... moreChannels) {
+    public void registerChannelListener(@NotNull RedisMessageListener listener, @NotNull String channel, @NotNull String... moreChannels) {
         subscribe(channel, moreChannels);
-        channelListeners.put(channel, handler);
-        Arrays.stream(moreChannels).forEach(c -> channelListeners.put(c, handler));
+        channelListeners.put(channel, listener);
+        Arrays.stream(moreChannels).forEach(c -> channelListeners.put(c, listener));
     }
 
     @Override
-    public void registerPatternListener(@NotNull RedisMessageListener handler, @NotNull String channelPattern, @NotNull String... morePatterns) {
+    public void registerPatternListener(@NotNull RedisMessageListener listener, @NotNull String channelPattern, @NotNull String... morePatterns) {
         subscribePattern(channelPattern, morePatterns);
-        patternListeners.put(channelPattern, handler);
-        Arrays.stream(morePatterns).forEach(c -> patternListeners.put(c, handler));
+        patternListeners.put(channelPattern, listener);
+        Arrays.stream(morePatterns).forEach(c -> patternListeners.put(c, listener));
     }
 
     @Override
-    public void unregisterListener(@NotNull RedisMessageListener handler) {
-        globalListeners.remove(handler);
-        channelListeners.entrySet().removeIf(e -> e.getValue().equals(handler));
-        patternListeners.entrySet().removeIf(e -> e.getValue().equals(handler));
+    public void unregisterListener(@NotNull RedisMessageListener listener) {
+        globalListeners.remove(listener);
+        channelListeners.entrySet().removeIf(e -> e.getValue().equals(listener));
+        patternListeners.entrySet().removeIf(e -> e.getValue().equals(listener));
     }
 
 }

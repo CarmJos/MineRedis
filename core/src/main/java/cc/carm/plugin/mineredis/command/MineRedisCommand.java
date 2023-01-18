@@ -43,7 +43,7 @@ public class MineRedisCommand extends BaseCommand {
             issuer.sendMessage("§c无法获取当前版本信息，请保证使用原生版本以避免安全问题。");
             return;
         }
-        issuer.sendMessage("§r当前插件版本为 §b" + pluginVersion + "§r。 §7(基于 lettuce &3" + reader.get("api") + "&7)");
+        issuer.sendMessage("§r当前插件版本为 §d" + pluginVersion + "§r。 §7(基于 lettuce &3" + reader.get("api") + "&7)");
         issuer.sendMessage("§r正在检查插件更新，请稍候...");
         core.checkUpdate(pluginVersion);
     }

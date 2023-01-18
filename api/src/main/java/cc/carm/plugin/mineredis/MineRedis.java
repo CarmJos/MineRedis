@@ -1,12 +1,18 @@
 package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
+import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
+import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.ClientOptions;
+import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.resource.ClientResources;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -55,6 +61,72 @@ public class MineRedis {
      */
     public static void shutdown(RedisManager manager) {
         instance.shutdown(manager);
+    }
+
+    public static RedisCommands<String, String> sync() {
+        return getManager().sync();
+    }
+
+    public static RedisAsyncCommands<String, String> async() {
+        return getManager().async();
+    }
+
+    public static void subscribe(@NotNull String channel, @NotNull String... moreChannels) {
+        getManager().subscribe(channel, moreChannels);
+    }
+
+    public static void unsubscribe(@NotNull String channel, @NotNull String... moreChannels) {
+        getManager().unsubscribe(channel, moreChannels);
+    }
+
+    public static void subscribePattern(@NotNull String channelPattern, @NotNull String... morePatterns) {
+        getManager().subscribePattern(channelPattern, morePatterns);
+    }
+
+    public static void unsubscribePattern(@NotNull String channelPattern, @NotNull String... morePatterns) {
+        getManager().unsubscribePattern(channelPattern, morePatterns);
+    }
+
+    public static long publish(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+        return getManager().publish(channel, byteOutput);
+    }
+
+    public static long publish(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+        return getManager().publish(channel, byteOutput);
+    }
+
+    public static long publish(@NotNull String channel, @NotNull String content) {
+        return getManager().publish(channel, content);
+    }
+
+    public static RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+        return getManager().publishAsync(channel, byteOutput);
+    }
+
+    public static RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+        return getManager().publishAsync(channel, byteOutput);
+    }
+
+    public static RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull String content) {
+        return getManager().publishAsync(channel, content);
+    }
+
+    public static void registerGlobalListener(@NotNull RedisMessageListener listener, @NotNull RedisMessageListener... moreListeners) {
+        getManager().registerGlobalListener(listener, moreListeners);
+    }
+
+    public static void registerChannelListener(@NotNull RedisMessageListener listener,
+                                               @NotNull String channel, @NotNull String... moreChannels) {
+        getManager().registerChannelListener(listener, channel, moreChannels);
+    }
+
+    public static void registerPatternListener(@NotNull RedisMessageListener listener,
+                                               @NotNull String channelPattern, @NotNull String... morePatterns) {
+        getManager().registerPatternListener(listener, channelPattern, morePatterns);
+    }
+
+    public static void unregisterListener(@NotNull RedisMessageListener listener) {
+        getManager().unregisterListener(listener);
     }
 
 
