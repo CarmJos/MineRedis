@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"cc.carm.plugin.mineredis"},{"l":"cc.carm.plugin.mineredis.api"},{"l":"cc.carm.plugin.mineredis.api.message"}]
