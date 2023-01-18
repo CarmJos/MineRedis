@@ -8,8 +8,18 @@ public interface RedisManager extends RedisMessageManager {
 
     RedisClient getClient();
 
+    /**
+     * 准备以同步方式操作RedisCommands。
+     *
+     * @return {@link RedisCommands}
+     */
     RedisCommands<String, String> sync();
 
+    /**
+     * 准备以异步方式操作RedisCommands。
+     *
+     * @return {@link RedisAsyncCommands}
+     */
     RedisAsyncCommands<String, String> async();
-    
+
 }

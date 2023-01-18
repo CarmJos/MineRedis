@@ -63,10 +63,20 @@ public class MineRedis {
         instance.shutdown(manager);
     }
 
+    /**
+     * 准备以同步方式操作RedisCommands。
+     *
+     * @return {@link RedisCommands}
+     */
     public static RedisCommands<String, String> sync() {
         return getManager().sync();
     }
 
+    /**
+     * 准备以异步方式操作RedisCommands。
+     *
+     * @return {@link RedisAsyncCommands}
+     */
     public static RedisAsyncCommands<String, String> async() {
         return getManager().async();
     }
