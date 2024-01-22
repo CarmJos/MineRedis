@@ -1,11 +1,17 @@
 package cc.carm.plugin.mineredis.api;
 
+import cc.carm.plugin.mineredis.api.callback.RedisCallbackBuilder;
+import cc.carm.plugin.mineredis.api.message.RedisMessage;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
 import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.RedisFuture;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 发布与订阅(Pub/Sub)管理器。
@@ -54,16 +60,24 @@ public interface RedisMessageManager {
 
     long publish(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput);
 
-    default long publish(@NotNull String channel, @NotNull String content) {
-        return publish(channel, s -> s.writeUTF(content));
+    default long publish(@NotNull String channel, @NotNull Object... values) {
+        return publish(channel, s -> writeParams(s, Arrays.asList(values)));
     }
 
     RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput);
 
     RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput);
 
-    default RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull String content) {
-        return publishAsync(channel, s -> s.writeUTF(content));
+    default RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull Object... values) {
+        return publishAsync(channel, s -> writeParams(s, Arrays.asList(values)));
+    }
+
+    RedisCallbackBuilder callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput);
+
+    RedisCallbackBuilder callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput);
+
+    default RedisCallbackBuilder callback(@NotNull String channel, @NotNull Object... values) {
+        return callback(channel, s -> writeParams(s, Arrays.asList(values)));
     }
 
     void registerGlobalListener(@NotNull RedisMessageListener listener, @NotNull RedisMessageListener... moreListeners);
@@ -75,4 +89,28 @@ public interface RedisMessageManager {
                                  @NotNull String channelPattern, @NotNull String... morePatterns);
 
     void unregisterListener(@NotNull RedisMessageListener listener);
+
+    static void writeParams(ByteArrayDataOutput data, List<Object> params) {
+        params.forEach(param -> writeParam(data, param));
+    }
+
+    static void writeParam(ByteArrayDataOutput data, Object value) {
+        if (value instanceof Long) {
+            data.writeLong((Long) value);
+        } else if (value instanceof Integer) {
+            data.writeInt((Integer) value);
+        } else if (value instanceof Short) {
+            data.writeShort((Short) value);
+        } else if (value instanceof Byte) {
+            data.writeByte((Byte) value);
+        } else if (value instanceof Double) {
+            data.writeDouble((Double) value);
+        } else if (value instanceof Float) {
+            data.writeFloat((Float) value);
+        } else if (value instanceof Boolean) {
+            data.writeBoolean((Boolean) value);
+        } else if (value instanceof String) {
+            data.writeUTF((String) value);
+        } else throw new IllegalArgumentException("Unsupported type: " + value.getClass().getName());
+    }
 }

@@ -1,6 +1,7 @@
 package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
+import cc.carm.plugin.mineredis.api.callback.RedisCallbackBuilder;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
 import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.ClientOptions;
@@ -105,8 +106,8 @@ public class MineRedis {
         return getManager().publish(channel, byteOutput);
     }
 
-    public static long publish(@NotNull String channel, @NotNull String content) {
-        return getManager().publish(channel, content);
+    public static long publish(@NotNull String channel, @NotNull Object... values) {
+        return getManager().publish(channel, values);
     }
 
     public static RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
@@ -117,8 +118,20 @@ public class MineRedis {
         return getManager().publishAsync(channel, byteOutput);
     }
 
-    public static RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull String content) {
-        return getManager().publishAsync(channel, content);
+    public static RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull Object... values) {
+        return getManager().publishAsync(channel, values);
+    }
+
+    public static RedisCallbackBuilder request(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+        return getManager().callback(channel, byteOutput);
+    }
+
+    public static RedisCallbackBuilder request(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+        return getManager().callback(channel, byteOutput);
+    }
+
+    public static RedisCallbackBuilder request(@NotNull String channel, @NotNull Object... values) {
+        return getManager().callback(channel, values);
     }
 
     public static void registerGlobalListener(@NotNull RedisMessageListener listener, @NotNull RedisMessageListener... moreListeners) {

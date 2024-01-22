@@ -2,6 +2,7 @@ package cc.carm.plugin.mineredis.api.message;
 
 import cc.carm.plugin.mineredis.MineRedis;
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
@@ -12,14 +13,14 @@ public class RedisMessage {
     protected final @NotNull String sourceServerID;
     protected final long timestamp;
 
-    protected final ByteArrayDataInput data;
+    protected final byte[] rawData;
 
     public RedisMessage(@NotNull String channel, @NotNull String sourceServerID,
-                        long timestamp, ByteArrayDataInput data) {
+                        long timestamp, byte[] raw) {
         this.channel = channel;
         this.sourceServerID = sourceServerID;
         this.timestamp = timestamp;
-        this.data = data;
+        this.rawData = raw;
     }
 
     /**
@@ -43,8 +44,13 @@ public class RedisMessage {
         return timestamp;
     }
 
+    public byte[] getRawData() {
+        return rawData;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
     public ByteArrayDataInput getData() {
-        return data;
+        return ByteStreams.newDataInput(rawData);
     }
 
     public <T> T apply(@NotNull Function<ByteArrayDataInput, T> handler) {
