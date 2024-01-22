@@ -1,6 +1,7 @@
 package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
+import cc.carm.plugin.mineredis.api.callback.RedisCallbackBuilder;
 import cc.carm.plugin.mineredis.api.message.RedisMessage;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
 import cc.carm.plugin.mineredis.handler.RedisByteCodec;
@@ -68,7 +69,7 @@ public class MineRedisManager implements RedisManager {
                     .forEach(listeners::add);
         }
 
-        listeners.forEach(listener -> listener.handle(new RedisMessage(channel, source, timestamp, ByteStreams.newDataInput(data))));
+        listeners.forEach(listener -> listener.handle(new RedisMessage(channel, source, timestamp, data)));
     }
 
     @Override
@@ -135,6 +136,19 @@ public class MineRedisManager implements RedisManager {
         ByteArrayDataOutput stream = ByteStreams.newDataOutput();
         byteOutput.accept(stream);
         return publishAsync(channel, stream);
+    }
+
+    @Override
+    public RedisCallbackBuilder callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+        return new RedisCallbackBuilder(this, channel, byteOutput);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public RedisCallbackBuilder callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+        ByteArrayDataOutput stream = ByteStreams.newDataOutput();
+        byteOutput.accept(stream);
+        return callback(channel, stream);
     }
 
     @SuppressWarnings("UnstableApiUsage")

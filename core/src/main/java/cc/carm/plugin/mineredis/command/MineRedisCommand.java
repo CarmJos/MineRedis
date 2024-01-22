@@ -48,4 +48,22 @@ public class MineRedisCommand extends BaseCommand {
         core.checkUpdate(pluginVersion);
     }
 
+    @Subcommand("get")
+    @Syntax("<key>")
+    @Description("获取指定键的值。")
+    public void get(CommandIssuer issuer, String key) {
+        if (issuer.isPlayer()) {
+            issuer.sendMessage("§c只有后台执行才能使用此命令。");
+            return;
+        }
+        issuer.sendMessage("§r正在获取键 §d" + key + "§r 的值...");
+        core.getManager().async().get(key).thenAccept(value -> {
+            if (value == null) {
+                issuer.sendMessage("§r键 §d" + key + "§r 不存在。");
+            } else {
+                issuer.sendMessage("§r键 §d" + key + "§r 的值为 §d" + value + "§r。");
+            }
+        });
+    }
+
 }
