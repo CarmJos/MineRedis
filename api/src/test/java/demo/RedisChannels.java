@@ -1,3 +1,5 @@
+package demo;
+
 import cc.carm.plugin.mineredis.api.channel.RedisChannel;
 import cc.carm.plugin.mineredis.api.message.PreparedRedisMessage;
 

@@ -1,3 +1,5 @@
+package demo;
+
 import cc.carm.plugin.mineredis.MineRedis;
 
 import java.util.UUID;
