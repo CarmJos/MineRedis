@@ -1,9 +1,9 @@
 package cc.carm.plugin.mineredis.api.channel;
 
 import cc.carm.plugin.mineredis.MineRedis;
+import cc.carm.plugin.mineredis.api.message.PreparedRedisMessage;
 import cc.carm.plugin.mineredis.api.message.RedisMessage;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
-import cc.carm.plugin.mineredis.api.message.PreparedRedisMessage;
 import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.RedisFuture;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +17,10 @@ public class RedisChannel implements RedisMessageListener {
 
     public static RedisChannelBuilder builder(String channel) {
         return new RedisChannelBuilder(channel);
+    }
+
+    public static RedisChannelBuilder builder(String... channelParts) {
+        return builder(String.join(".", channelParts));
     }
 
     protected final @NotNull String channel;
