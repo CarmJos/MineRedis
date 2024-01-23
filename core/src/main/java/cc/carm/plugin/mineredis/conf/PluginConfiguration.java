@@ -12,27 +12,28 @@ import java.util.Map;
 public class PluginConfiguration extends ConfigurationRoot {
 
     @HeaderComment("排错模式，一般留给开发者检查问题，平常使用无需开启。")
-    public final ConfigValue<Boolean> DEBUG = ConfiguredValue.of(Boolean.class, false);
+    public final ConfigValue<Boolean> DEBUG = ConfiguredValue.of(false);
 
     @HeaderComment({"",
             "统计数据设定",
             "该选项用于帮助开发者统计插件版本与使用情况，且绝不会影响性能与使用体验。",
             "当然，您也可以选择在这里关闭，或在plugins/bStats下的配置文件中关闭所有插件的统计信息。"
     })
-    public final ConfigValue<Boolean> METRICS = ConfiguredValue.of(Boolean.class, true);
+    public final ConfigValue<Boolean> METRICS = ConfiguredValue.of(true);
 
     @HeaderComment({"",
             "检查更新设定",
             "该选项用于插件判断是否要检查更新，若您不希望插件检查更新并提示您，可以选择关闭。",
             "检查更新为异步操作，绝不会影响性能与使用体验。"
     })
-    public final ConfigValue<Boolean> UPDATE_CHECKER = ConfiguredValue.of(Boolean.class, true);
+    public final ConfigValue<Boolean> UPDATE_CHECKER = ConfiguredValue.of(true);
 
-    public final ConfigValue<String> SERVER_ID = ConfiguredValue.of(String.class, "server-name");
+    @HeaderComment("当前服务器的ID，用于消息通讯时辨别消息来源。")
+    public final ConfigValue<String> SERVER_ID = ConfiguredValue.of("server-name");
 
     @SuppressWarnings("deprecation")
-    public final ConfigValue<RedisURI> CONNECTION = ConfigValue.builder()
-            .asValue(RedisURI.class).fromSection()
+    public final ConfigValue<RedisURI> CONNECTION = ConfiguredValue.builderOf(RedisURI.class)
+            .fromSection()
             .defaults(RedisURI.Builder
                     .redis("127.0.0.1", RedisURI.DEFAULT_REDIS_PORT)
                     .withPassword("password".toCharArray())
@@ -61,6 +62,5 @@ public class PluginConfiguration extends ConfigurationRoot {
                 if (url.getPassword() != null) map.put("password", new String(url.getPassword()));
                 return map;
             }).build();
-
 
 }

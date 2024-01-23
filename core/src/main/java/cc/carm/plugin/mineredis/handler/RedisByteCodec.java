@@ -7,11 +7,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class RedisByteCodec implements RedisCodec<String, byte[]> {
-    private final Charset charset = StandardCharsets.UTF_8;
+
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     @Override
     public String decodeKey(ByteBuffer bytes) {
-        return charset.decode(bytes).toString();
+        return CHARSET.decode(bytes).toString();
     }
 
     @Override
@@ -26,7 +27,7 @@ public class RedisByteCodec implements RedisCodec<String, byte[]> {
 
     @Override
     public ByteBuffer encodeKey(String key) {
-        return charset.encode(key);
+        return CHARSET.encode(key);
     }
 
     @Override

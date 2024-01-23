@@ -1,17 +1,15 @@
 package cc.carm.plugin.mineredis.api;
 
-import cc.carm.plugin.mineredis.api.callback.RedisCallbackBuilder;
-import cc.carm.plugin.mineredis.api.message.RedisMessage;
+import cc.carm.plugin.mineredis.api.channel.RedisChannel;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
+import cc.carm.plugin.mineredis.api.request.RedisRequestBuilder;
 import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.RedisFuture;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * 发布与订阅(Pub/Sub)管理器。
@@ -72,11 +70,11 @@ public interface RedisMessageManager {
         return publishAsync(channel, s -> writeParams(s, Arrays.asList(values)));
     }
 
-    RedisCallbackBuilder callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput);
+    RedisRequestBuilder callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput);
 
-    RedisCallbackBuilder callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput);
+    RedisRequestBuilder callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput);
 
-    default RedisCallbackBuilder callback(@NotNull String channel, @NotNull Object... values) {
+    default RedisRequestBuilder callback(@NotNull String channel, @NotNull Object... values) {
         return callback(channel, s -> writeParams(s, Arrays.asList(values)));
     }
 
@@ -89,6 +87,15 @@ public interface RedisMessageManager {
                                  @NotNull String channelPattern, @NotNull String... morePatterns);
 
     void unregisterListener(@NotNull RedisMessageListener listener);
+
+    void registerChannels(@NotNull Class<?> channelClazz);
+
+    void unregisterChannels(@NotNull Class<?> channelClazz);
+
+    default void registerChannel(@NotNull RedisChannel channel) {
+        registerChannelListener(channel, channel.getChannel());
+    }
+
 
     static void writeParams(ByteArrayDataOutput data, List<Object> params) {
         params.forEach(param -> writeParam(data, param));

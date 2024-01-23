@@ -1,8 +1,9 @@
 package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
-import cc.carm.plugin.mineredis.api.callback.RedisCallbackBuilder;
+import cc.carm.plugin.mineredis.api.channel.RedisChannel;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
+import cc.carm.plugin.mineredis.api.request.RedisRequestBuilder;
 import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisFuture;
@@ -122,15 +123,15 @@ public class MineRedis {
         return getManager().publishAsync(channel, values);
     }
 
-    public static RedisCallbackBuilder request(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+    public static RedisRequestBuilder request(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
         return getManager().callback(channel, byteOutput);
     }
 
-    public static RedisCallbackBuilder request(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+    public static RedisRequestBuilder request(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
         return getManager().callback(channel, byteOutput);
     }
 
-    public static RedisCallbackBuilder request(@NotNull String channel, @NotNull Object... values) {
+    public static RedisRequestBuilder request(@NotNull String channel, @NotNull Object... values) {
         return getManager().callback(channel, values);
     }
 
@@ -148,9 +149,20 @@ public class MineRedis {
         getManager().registerPatternListener(listener, channelPattern, morePatterns);
     }
 
+    public static void registerChannels(@NotNull Class<?> channelClazz) {
+        getManager().registerChannels(channelClazz);
+    }
+
+    public static void unregisterChannels(@NotNull Class<?> channelClazz) {
+        getManager().unregisterChannels(channelClazz);
+    }
+
+    public static void registerChannel(@NotNull RedisChannel channel) {
+        getManager().registerChannel(channel);
+    }
+
     public static void unregisterListener(@NotNull RedisMessageListener listener) {
         getManager().unregisterListener(listener);
     }
-
 
 }

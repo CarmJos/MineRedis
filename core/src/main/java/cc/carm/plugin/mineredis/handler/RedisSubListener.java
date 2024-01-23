@@ -52,6 +52,5 @@ public class RedisSubListener implements RedisPubSubListener<String, byte[]> {
 
     @Override
     public void punsubscribed(String pattern, long count) {
-        //TODO Debug消息
     }
 }

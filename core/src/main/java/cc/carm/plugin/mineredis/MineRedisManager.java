@@ -1,9 +1,10 @@
 package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
-import cc.carm.plugin.mineredis.api.callback.RedisCallbackBuilder;
+import cc.carm.plugin.mineredis.api.channel.RedisChannel;
 import cc.carm.plugin.mineredis.api.message.RedisMessage;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
+import cc.carm.plugin.mineredis.api.request.RedisRequestBuilder;
 import cc.carm.plugin.mineredis.handler.RedisByteCodec;
 import cc.carm.plugin.mineredis.handler.RedisSubListener;
 import com.google.common.io.ByteArrayDataOutput;
@@ -19,6 +20,7 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.resource.ClientResources;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +55,6 @@ public class MineRedisManager implements RedisManager {
         this.subConn.addListener(new RedisSubListener(this));
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     public void handleMessage(String pattern, String channel, String source, long timestamp, byte[] data) {
         List<RedisMessageListener> listeners = new ArrayList<>(globalListeners);
 
@@ -119,7 +120,6 @@ public class MineRedisManager implements RedisManager {
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public long publish(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
         ByteArrayDataOutput stream = ByteStreams.newDataOutput();
         byteOutput.accept(stream);
@@ -131,7 +131,6 @@ public class MineRedisManager implements RedisManager {
     }
 
     @Override
-    @SuppressWarnings("UnstableApiUsage")
     public RedisFuture<Long> publishAsync(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
         ByteArrayDataOutput stream = ByteStreams.newDataOutput();
         byteOutput.accept(stream);
@@ -139,19 +138,17 @@ public class MineRedisManager implements RedisManager {
     }
 
     @Override
-    public RedisCallbackBuilder callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
-        return new RedisCallbackBuilder(this, channel, byteOutput);
+    public RedisRequestBuilder callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+        return new RedisRequestBuilder(this, channel, byteOutput);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
-    public RedisCallbackBuilder callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+    public RedisRequestBuilder callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
         ByteArrayDataOutput stream = ByteStreams.newDataOutput();
         byteOutput.accept(stream);
         return callback(channel, stream);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     protected byte[] writeMessages(@NotNull ByteArrayDataOutput byteOutput) {
         ByteArrayDataOutput stream = ByteStreams.newDataOutput();
         stream.writeUTF(MineRedis.getServerID()); // 在头部写入本节点的ID
@@ -186,6 +183,29 @@ public class MineRedisManager implements RedisManager {
         globalListeners.remove(listener);
         channelListeners.entrySet().removeIf(e -> e.getValue().equals(listener));
         patternListeners.entrySet().removeIf(e -> e.getValue().equals(listener));
+    }
+
+    @Override
+    public void registerChannels(@NotNull Class<?> channelClazz) {
+        Arrays.stream(channelClazz.getDeclaredFields()).forEach(field -> handleChannel(field, channelClazz, this::registerChannel));
+        Arrays.stream(channelClazz.getDeclaredClasses()).forEach(this::registerChannels);
+    }
+
+    protected void handleChannel(@NotNull Field field, @NotNull Class<?> source,
+                                 @NotNull Consumer<RedisChannel> channel) {
+        try {
+            field.setAccessible(true);
+            Object obj = field.get(source);
+            if (!(obj instanceof RedisChannel)) return;
+            channel.accept((RedisChannel) obj);
+        } catch (Exception ex) {
+        }
+    }
+
+    @Override
+    public void unregisterChannels(@NotNull Class<?> channelClazz) {
+        Arrays.stream(channelClazz.getDeclaredFields()).forEach(field -> handleChannel(field, channelClazz, this::unregisterListener));
+        Arrays.stream(channelClazz.getDeclaredClasses()).forEach(this::unregisterChannels);
     }
 
 }
