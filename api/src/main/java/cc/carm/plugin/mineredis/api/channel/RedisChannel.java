@@ -15,6 +15,19 @@ import java.util.function.Predicate;
 
 public class RedisChannel implements RedisMessageListener {
 
+    public static RedisChannel of(@NotNull String channel, @NotNull Consumer<RedisMessage> handler) {
+        return builder(channel).handle(handler);
+    }
+
+    public static RedisChannel of(@NotNull String channel, @NotNull Function<RedisMessage, PreparedRedisMessage> handler) {
+        return builder(channel).handle(handler);
+    }
+
+    public static RedisChannel of(@NotNull String channel, @NotNull Predicate<RedisMessage> predicate,
+                                  @NotNull Function<RedisMessage, PreparedRedisMessage> handler) {
+        return builder(channel).filter(predicate).handle(handler);
+    }
+
     public static RedisChannelBuilder builder(String channel) {
         return new RedisChannelBuilder(channel);
     }
