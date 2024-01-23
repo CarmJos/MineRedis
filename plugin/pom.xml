@@ -18,6 +18,8 @@
     </properties>
     <artifactId>mineredis-plugin</artifactId>
 
+    <name>MineRedis-Plugin</name>
+
     <dependencies>
 
         <dependency>
