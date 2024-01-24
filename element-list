@@ -1,0 +1,5 @@
+cc.carm.plugin.mineredis
+cc.carm.plugin.mineredis.api
+cc.carm.plugin.mineredis.api.channel
+cc.carm.plugin.mineredis.api.message
+cc.carm.plugin.mineredis.api.request
