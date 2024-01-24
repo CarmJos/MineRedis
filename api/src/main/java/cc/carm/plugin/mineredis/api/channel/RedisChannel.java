@@ -15,6 +15,14 @@ import java.util.function.Predicate;
 
 public class RedisChannel implements RedisMessageListener {
 
+    public static RedisChannel of(@NotNull String channel) {
+        return new RedisChannel(channel, null, null);
+    }
+
+    public static RedisChannel of(@NotNull String... channelPart) {
+        return new RedisChannel(String.join(".", channelPart), null, null);
+    }
+
     public static RedisChannel of(@NotNull String channel, @NotNull Consumer<RedisMessage> handler) {
         return builder(channel).handle(handler);
     }
@@ -50,6 +58,10 @@ public class RedisChannel implements RedisMessageListener {
 
     public @NotNull String getChannel() {
         return this.channel;
+    }
+
+    public boolean shouldRegister() {
+        return this.handler != null;
     }
 
     @Override

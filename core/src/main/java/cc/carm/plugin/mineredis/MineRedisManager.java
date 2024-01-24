@@ -192,12 +192,14 @@ public class MineRedisManager implements RedisManager {
     }
 
     protected void handleChannel(@NotNull Field field, @NotNull Class<?> source,
-                                 @NotNull Consumer<RedisChannel> channel) {
+                                 @NotNull Consumer<RedisChannel> consumer) {
         try {
             field.setAccessible(true);
             Object obj = field.get(source);
             if (!(obj instanceof RedisChannel)) return;
-            channel.accept((RedisChannel) obj);
+            RedisChannel channel = (RedisChannel) obj;
+            if (!channel.shouldRegister()) return;
+            consumer.accept(channel);
         } catch (Exception ex) {
         }
     }
