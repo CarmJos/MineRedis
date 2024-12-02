@@ -23,7 +23,7 @@
 
         <deps.easyconf.version>3.9.1</deps.easyconf.version>
         <deps.easyplugin.version>1.5.11</deps.easyplugin.version>
-        <deps.lettuce.version>6.2.0.RELEASE</deps.lettuce.version>
+        <deps.lettuce.version>6.5.1.RELEASE</deps.lettuce.version>
     </properties>
     <groupId>cc.carm.plugin</groupId>
     <artifactId>mineredis-parent</artifactId>
