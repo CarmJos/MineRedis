@@ -23,19 +23,22 @@ jobs:
       - name: "Set up JDK"
         uses: actions/setup-java@v2
         with:
-          java-version: '11'
+          java-version: '8'
           distribution: 'adopt'
       - name: "Package"
         run: mvn -B package --file pom.xml -Dgpg.skip
 
+      - name: "Upload assets"
+        uses: actions/upload-artifact@v4
+        with:
+          name: assets
+          path: ".asset/*.jar"
+          retention-days: 30
+          include-hidden-files: true
+
       - name: "Upload artifacts"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: "**/target/"
-
-      - name: "Upload assets"
-        uses: actions/upload-artifact@v2
-        with:
-          name: assets
-          path: ".asset/"
+          retention-days: 5
