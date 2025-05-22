@@ -86,8 +86,7 @@ public class RedisChannel implements RedisMessageListener {
     public RedisFuture<Long> publishAsync(Object... values) {
         return MineRedis.publishAsync(channel, values);
     }
-
-
+    
     public long publish(@NotNull Object... values) {
         return MineRedis.publish(channel, values);
     }
@@ -98,6 +97,38 @@ public class RedisChannel implements RedisMessageListener {
 
     public long publish(@NotNull Consumer<ByteArrayDataOutput> data) {
         return MineRedis.publish(channel, data);
+    }
+
+    public static class RedisChannelBuilder {
+
+        protected final String channel;
+        protected Predicate<RedisMessage> filter = m -> !m.isLocalMessage();
+
+        public RedisChannelBuilder(String channel) {
+            this.channel = channel;
+        }
+
+
+        public RedisChannelBuilder filter(Predicate<RedisMessage> filter) {
+            return setFilter(this.filter == null ? filter : this.filter.and(filter));
+        }
+
+        public RedisChannelBuilder setFilter(Predicate<RedisMessage> filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        public RedisChannel handle(Consumer<RedisMessage> handler) {
+            return handle(m -> {
+                handler.accept(m);
+                return null;
+            });
+        }
+
+        public RedisChannel handle(Function<RedisMessage, PreparedRedisMessage> handler) {
+            return new RedisChannel(channel, filter, handler);
+        }
+
     }
 
 }

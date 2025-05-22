@@ -1,5 +1,6 @@
 package cc.carm.plugin.mineredis.api;
 
+import cc.carm.plugin.mineredis.api.channel.RedisCallback;
 import cc.carm.plugin.mineredis.api.channel.RedisChannel;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
 import cc.carm.plugin.mineredis.api.request.RedisRequestBuilder;
@@ -96,6 +97,9 @@ public interface RedisMessageManager {
         registerChannelListener(channel, channel.getChannel());
     }
 
+    default void registerChannel(@NotNull RedisCallback<?, ?> callback) {
+        registerChannelListener(callback, callback.getRequestChannel());
+    }
 
     static void writeParams(ByteArrayDataOutput data, List<Object> params) {
         params.forEach(param -> writeParam(data, param));

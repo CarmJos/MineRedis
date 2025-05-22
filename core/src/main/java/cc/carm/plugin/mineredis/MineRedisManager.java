@@ -1,6 +1,7 @@
 package cc.carm.plugin.mineredis;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
+import cc.carm.plugin.mineredis.api.channel.RedisCallback;
 import cc.carm.plugin.mineredis.api.channel.RedisChannel;
 import cc.carm.plugin.mineredis.api.message.RedisMessage;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class MineRedisManager implements RedisManager {
@@ -187,12 +189,32 @@ public class MineRedisManager implements RedisManager {
 
     @Override
     public void registerChannels(@NotNull Class<?> channelClazz) {
-        Arrays.stream(channelClazz.getDeclaredFields()).forEach(field -> handleChannel(field, channelClazz, this::registerChannel));
+        Arrays.stream(channelClazz.getDeclaredFields()).forEach(field -> handleChannel(field, channelClazz, this::registerChannelListener));
         Arrays.stream(channelClazz.getDeclaredClasses()).forEach(this::registerChannels);
     }
 
     protected void handleChannel(@NotNull Field field, @NotNull Class<?> source,
-                                 @NotNull Consumer<RedisChannel> consumer) {
+                                 @NotNull BiConsumer<RedisMessageListener, String> consumer) {
+        try {
+            field.setAccessible(true);
+            Object obj = field.get(source);
+            if ((obj instanceof RedisChannel)) {
+                RedisChannel channel = (RedisChannel) obj;
+                if (channel.shouldRegister()) {
+                    consumer.accept(channel, channel.getChannel());
+                }
+            }
+            if (obj instanceof RedisCallback<?, ?>) {
+                RedisCallback<?, ?> callback = (RedisCallback<?, ?>) obj;
+                consumer.accept(callback, callback.getRequestChannel());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    protected void handleCallback(@NotNull Field field, @NotNull Class<?> source,
+                                  @NotNull Consumer<RedisChannel> consumer) {
         try {
             field.setAccessible(true);
             Object obj = field.get(source);
@@ -201,12 +223,15 @@ public class MineRedisManager implements RedisManager {
             if (!channel.shouldRegister()) return;
             consumer.accept(channel);
         } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
     @Override
     public void unregisterChannels(@NotNull Class<?> channelClazz) {
-        Arrays.stream(channelClazz.getDeclaredFields()).forEach(field -> handleChannel(field, channelClazz, this::unregisterListener));
+        Arrays.stream(channelClazz.getDeclaredFields()).forEach(field -> handleChannel(field, channelClazz, ((redisMessageListener, s) -> {
+            unregisterListener(redisMessageListener);
+        })));
         Arrays.stream(channelClazz.getDeclaredClasses()).forEach(this::unregisterChannels);
     }
 
