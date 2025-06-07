@@ -2,8 +2,9 @@ package cc.carm.plugin.mineredis.api;
 
 import cc.carm.plugin.mineredis.api.channel.RedisCallback;
 import cc.carm.plugin.mineredis.api.channel.RedisChannel;
+import cc.carm.plugin.mineredis.api.channel.RedisRequest;
+import cc.carm.plugin.mineredis.api.message.PreparedRedisRequest;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
-import cc.carm.plugin.mineredis.api.request.RedisRequestBuilder;
 import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.RedisFuture;
 import org.jetbrains.annotations.NotNull;
@@ -71,11 +72,11 @@ public interface RedisMessageManager {
         return publishAsync(channel, s -> writeParams(s, Arrays.asList(values)));
     }
 
-    RedisRequestBuilder callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput);
+    PreparedRedisRequest callback(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput);
 
-    RedisRequestBuilder callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput);
+    PreparedRedisRequest callback(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput);
 
-    default RedisRequestBuilder callback(@NotNull String channel, @NotNull Object... values) {
+    default PreparedRedisRequest callback(@NotNull String channel, @NotNull Object... values) {
         return callback(channel, s -> writeParams(s, Arrays.asList(values)));
     }
 
@@ -97,8 +98,12 @@ public interface RedisMessageManager {
         registerChannelListener(channel, channel.getChannel());
     }
 
-    default void registerChannel(@NotNull RedisCallback<?, ?> callback) {
-        registerChannelListener(callback, callback.getRequestChannel());
+    default void registerChannel(@NotNull RedisRequest<?> request) {
+        registerChannelListener(request, request.getChannel());
+    }
+
+    default void registerChannel(@NotNull RedisCallback<?, ?, ?> callback) {
+        registerChannelListener(callback, callback.requestChannel());
     }
 
     static void writeParams(ByteArrayDataOutput data, List<Object> params) {

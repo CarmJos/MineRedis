@@ -4,7 +4,7 @@ import cc.carm.plugin.mineredis.MineRedis;
 
 import java.util.UUID;
 
-public class RedisRequest {
+public class RedisRequestDemo {
 
     public void demo() {
         UUID requestID = UUID.randomUUID();

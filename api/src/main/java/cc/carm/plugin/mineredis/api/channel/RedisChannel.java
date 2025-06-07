@@ -15,33 +15,26 @@ import java.util.function.Predicate;
 
 public class RedisChannel implements RedisMessageListener {
 
-    public static RedisChannel of(@NotNull String channel) {
-        return new RedisChannel(channel, null, null);
-    }
+    public static final String CHANNEL_DELIMITER = ".";
 
-    public static RedisChannel of(@NotNull String... channelPart) {
-        return new RedisChannel(String.join(".", channelPart), null, null);
-    }
-
-    public static RedisChannel of(@NotNull String channel, @NotNull Consumer<RedisMessage> handler) {
-        return builder(channel).handle(handler);
-    }
-
-    public static RedisChannel of(@NotNull String channel, @NotNull Function<RedisMessage, PreparedRedisMessage> handler) {
-        return builder(channel).handle(handler);
-    }
-
-    public static RedisChannel of(@NotNull String channel, @NotNull Predicate<RedisMessage> predicate,
-                                  @NotNull Function<RedisMessage, PreparedRedisMessage> handler) {
-        return builder(channel).filter(predicate).handle(handler);
-    }
-
-    public static RedisChannelBuilder builder(String channel) {
+    /**
+     * 创建一个新的 RedisChannel 实例，用于监听指定的频道。
+     *
+     * @param channel 频道名称，使用 {@link #CHANNEL_DELIMITER} 作为分隔符。
+     * @return 一个新的 RedisChannelBuilder 实例，用于构建 RedisChannel。
+     */
+    public static RedisChannelBuilder at(String channel) {
         return new RedisChannelBuilder(channel);
     }
 
-    public static RedisChannelBuilder builder(String... channelParts) {
-        return builder(String.join(".", channelParts));
+    /**
+     * 创建一个新的 RedisChannel 实例，用于监听指定的频道。
+     *
+     * @param channelParts 频道的各个部分，将使用 {@link #CHANNEL_DELIMITER} 连接。
+     * @return 一个新的 RedisChannelBuilder 实例，用于构建 RedisChannel。
+     */
+    public static RedisChannelBuilder at(String... channelParts) {
+        return at(String.join(CHANNEL_DELIMITER, channelParts));
     }
 
     protected final @NotNull String channel;
@@ -81,12 +74,11 @@ public class RedisChannel implements RedisMessageListener {
     public RedisFuture<Long> publishAsync(@NotNull Consumer<ByteArrayDataOutput> data) {
         return MineRedis.publishAsync(channel, data);
     }
-
-
+    
     public RedisFuture<Long> publishAsync(Object... values) {
         return MineRedis.publishAsync(channel, values);
     }
-    
+
     public long publish(@NotNull Object... values) {
         return MineRedis.publish(channel, values);
     }
@@ -108,13 +100,8 @@ public class RedisChannel implements RedisMessageListener {
             this.channel = channel;
         }
 
-
         public RedisChannelBuilder filter(Predicate<RedisMessage> filter) {
-            return setFilter(this.filter == null ? filter : this.filter.and(filter));
-        }
-
-        public RedisChannelBuilder setFilter(Predicate<RedisMessage> filter) {
-            this.filter = filter;
+            this.filter = this.filter == null ? filter : this.filter.and(filter);
             return this;
         }
 

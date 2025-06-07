@@ -3,7 +3,7 @@ package cc.carm.plugin.mineredis;
 import cc.carm.plugin.mineredis.api.RedisManager;
 import cc.carm.plugin.mineredis.api.channel.RedisChannel;
 import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
-import cc.carm.plugin.mineredis.api.request.RedisRequestBuilder;
+import cc.carm.plugin.mineredis.api.message.PreparedRedisRequest;
 import com.google.common.io.ByteArrayDataOutput;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisFuture;
@@ -123,15 +123,15 @@ public class MineRedis {
         return getManager().publishAsync(channel, values);
     }
 
-    public static RedisRequestBuilder request(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
+    public static PreparedRedisRequest request(@NotNull String channel, @NotNull ByteArrayDataOutput byteOutput) {
         return getManager().callback(channel, byteOutput);
     }
 
-    public static RedisRequestBuilder request(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
+    public static PreparedRedisRequest request(@NotNull String channel, @NotNull Consumer<ByteArrayDataOutput> byteOutput) {
         return getManager().callback(channel, byteOutput);
     }
 
-    public static RedisRequestBuilder request(@NotNull String channel, @NotNull Object... values) {
+    public static PreparedRedisRequest request(@NotNull String channel, @NotNull Object... values) {
         return getManager().callback(channel, values);
     }
 

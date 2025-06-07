@@ -1,8 +1,6 @@
-package cc.carm.plugin.mineredis.api.request;
+package cc.carm.plugin.mineredis.api.message;
 
 import cc.carm.plugin.mineredis.api.RedisManager;
-import cc.carm.plugin.mineredis.api.message.RedisMessage;
-import cc.carm.plugin.mineredis.api.message.RedisMessageListener;
 import com.google.common.io.ByteArrayDataOutput;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class RedisRequestBuilder {
+public class PreparedRedisRequest {
 
     protected final @NotNull RedisManager redis;
     protected final @NotNull String requestChannel;
@@ -18,14 +16,14 @@ public class RedisRequestBuilder {
 
     protected Predicate<RedisMessage> filter;
 
-    public RedisRequestBuilder(@NotNull RedisManager redis,
-                               @NotNull String requestChannel, @NotNull ByteArrayDataOutput requestData) {
+    public PreparedRedisRequest(@NotNull RedisManager redis,
+                                @NotNull String requestChannel, @NotNull ByteArrayDataOutput requestData) {
         this.redis = redis;
         this.requestChannel = requestChannel;
         this.requestData = requestData;
     }
 
-    public RedisRequestBuilder filter(@NotNull Predicate<RedisMessage> filter) {
+    public PreparedRedisRequest filter(@NotNull Predicate<RedisMessage> filter) {
         this.filter = this.filter == null ? filter : this.filter.and(filter);
         return this;
     }

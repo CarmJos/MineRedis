@@ -8,136 +8,213 @@ import com.google.common.io.ByteStreams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public class RedisCallback<REQUEST, RESPONSE> implements RedisMessageListener {
+public class RedisCallback<KEY, REQUEST, RESPONSE> implements RedisMessageListener {
 
-    public static <T, R> Builder<T, R> create() {
-        return new Builder<>();
-    }
-
-    public static Builder<ByteArrayDataOutput, ByteArrayDataOutput> original(@NotNull String requestChannel,
-                                                                             @NotNull String responseChannel) {
-        return RedisCallback.<ByteArrayDataOutput, ByteArrayDataOutput>create()
-                .requester(requestChannel, (b, r) -> b.write(r.toByteArray()))
-                .responser(responseChannel, (b, r) -> b.write(r.toByteArray()));
+    /**
+     * 创建一个新的 RedisCallback.Builder 实例，用于构建 RedisCallback。
+     *
+     * @param requestClazz  请求消息的类类型，用于序列化和反序列化。
+     * @param responseClazz 响应消息的类类型，用于解析响应。
+     * @param <KEY>         请求和响应的键类型，用于标识请求和响应的唯一性。
+     * @param <REQUEST>     请求消息的类型参数，通常是一个具体的类。
+     * @param <RESPONSE>    响应消息的类型参数，通常是一个具体的类。
+     * @return 一个新的 RedisCallback.Builder 实例，用于构建 RedisCallback。
+     */
+    public static <KEY, REQUEST, RESPONSE>
+    Builder<KEY, REQUEST, RESPONSE> create(
+            @NotNull Class<KEY> keyClass,
+            @NotNull Class<REQUEST> requestClazz,
+            @NotNull Class<RESPONSE> responseClazz) {
+        return new Builder<>(requestClazz, responseClazz);
     }
 
     protected final @NotNull String requestChannel;
     protected final @NotNull String responseChannel;
 
-    protected final @Nullable Predicate<RedisMessage> requestFilter;
-    protected final @Nullable Predicate<RedisMessage> responseFilter;
-
     protected final @NotNull BiConsumer<ByteArrayDataOutput, REQUEST> requestSerializer;
-    protected final @NotNull BiConsumer<ByteArrayDataOutput, RESPONSE> responseSerializer;
 
-    protected final @NotNull Function<RedisMessage, RESPONSE> handler;
+    protected final @NotNull Function<REQUEST, KEY> requestKey;
+    protected final @NotNull Function<RedisMessage, KEY> responseKey;
+
+    protected final @NotNull Function<RedisMessage, RESPONSE> responseParser;
+    protected final @NotNull Map<KEY, CompletableFuture<RESPONSE>> pendingRequests = new ConcurrentHashMap<>();
 
     public RedisCallback(@NotNull String requestChannel, @NotNull String responseChannel,
-                         @Nullable Predicate<RedisMessage> requestFilter,
-                         @Nullable Predicate<RedisMessage> responseFilter,
+                         @NotNull Function<REQUEST, KEY> requestKey, @NotNull Function<RedisMessage, KEY> responseKey,
                          @NotNull BiConsumer<ByteArrayDataOutput, REQUEST> requestSerializer,
-                         @NotNull BiConsumer<ByteArrayDataOutput, RESPONSE> responseSerializer,
-                         @NotNull Function<RedisMessage, RESPONSE> handler) {
+                         @NotNull Function<RedisMessage, RESPONSE> responseParser) {
         this.requestChannel = requestChannel;
         this.responseChannel = responseChannel;
-        this.requestFilter = requestFilter;
-        this.responseFilter = responseFilter;
         this.requestSerializer = requestSerializer;
-        this.responseSerializer = responseSerializer;
-        this.handler = handler;
+        this.requestKey = requestKey;
+        this.responseKey = responseKey;
+        this.responseParser = responseParser;
     }
 
-    public @NotNull String getRequestChannel() {
+    public @NotNull String requestChannel() {
         return this.requestChannel;
+    }
+
+    public @NotNull String responseChannel() {
+        return this.responseChannel;
+    }
+
+    public @NotNull Map<KEY, CompletableFuture<RESPONSE>> pendingRequests() {
+        return pendingRequests;
+    }
+
+    public @Nullable CompletableFuture<RESPONSE> get(@NotNull KEY key) {
+        return pendingRequests.get(key);
+    }
+
+    public void cancel(@NotNull KEY key) {
+        CompletableFuture<RESPONSE> future = pendingRequests.remove(key);
+        if (future != null) {
+            future.completeExceptionally(new RuntimeException("Request cancelled."));
+        }
+    }
+
+    /**
+     * 取消所有挂起的请求，并清理相关资源。
+     * 这通常在关闭连接或应用程序退出时调用。
+     */
+    public void shutdown() {
+        for (CompletableFuture<RESPONSE> future : pendingRequests.values()) {
+            future.completeExceptionally(new RuntimeException("Shutting down. All requests cancelled."));
+        }
+        pendingRequests.clear();
     }
 
     @Override
     public void handle(RedisMessage message) {
-        if (!requestChannel.equals(message.getChannel())) return;
-        if (requestFilter != null && !requestFilter.test(message)) return;
+        if (!responseChannel.equals(message.getChannel())) return;
 
-        RESPONSE response = handler.apply(message);
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        responseSerializer.accept(out, response);
-        MineRedis.publish(requestChannel, out);
+        KEY key = keyOf(message);
+        CompletableFuture<RESPONSE> future = pendingRequests.remove(key);
+        if (future == null) return; // 无对应请求
+
+        try {
+            future.complete(responseParser.apply(message));
+        } catch (Exception ex) {
+            future.completeExceptionally(new RuntimeException("Failed to handle response", ex));
+        }
+    }
+
+    public CompletableFuture<RESPONSE> call(@NotNull Supplier<REQUEST> request) {
+        return call(request.get());
     }
 
     public CompletableFuture<RESPONSE> call(@NotNull REQUEST request) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        requestSerializer.accept(out, request);
+        KEY key = keyOf(request);
+        CompletableFuture<RESPONSE> exists = get(key);
+        if (exists != null) return exists;
 
         CompletableFuture<RESPONSE> future = new CompletableFuture<>();
-        RedisMessageListener listener = message -> {
-            if (requestFilter != null && !requestFilter.test(message)) return;
-            future.complete(handler.apply(message));
-        };
-        MineRedis.registerChannelListener(listener, requestChannel);
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        try {
+            requestSerializer.accept(out, request);
+        } catch (Exception ex) {
+            future.completeExceptionally(new RuntimeException("Failed to serialize request", ex));
+            return future;
+        }
+
+        this.pendingRequests.put(key, future);
+
         return MineRedis.publishAsync(requestChannel, out)
                 .thenCompose(l -> future)
-                .whenComplete((r, e) -> MineRedis.unregisterListener(listener))
+                .whenComplete((r, e) -> this.pendingRequests.remove(key))
                 .toCompletableFuture();
     }
 
-    public static class Builder<REQUEST, RESPONSE> {
+    public @NotNull KEY keyOf(@NotNull REQUEST request) {
+        return Objects.requireNonNull(requestKey.apply(request), "Request key cannot be null.");
+    }
+
+    public @NotNull KEY keyOf(@NotNull RedisMessage response) {
+        return Objects.requireNonNull(responseKey.apply(response), "Response key cannot be null.");
+    }
+
+    public static class Builder<KEY, REQUEST, RESPONSE> {
 
         protected String requestChannel;
         protected String responseChannel;
 
-        protected @Nullable Predicate<RedisMessage> requestFilter;
-        protected @Nullable Predicate<RedisMessage> responseFilter;
-
         protected BiConsumer<ByteArrayDataOutput, REQUEST> requestSerializer;
-        protected BiConsumer<ByteArrayDataOutput, RESPONSE> responseSerializer;
 
-        protected Function<RedisMessage, RESPONSE> handler;
+        protected Function<REQUEST, KEY> requestKey;
+        protected Function<RedisMessage, KEY> responseKey;
 
-        public Builder() {
+        protected Function<RedisMessage, RESPONSE> responseParser;
+
+        public Builder(@NotNull Class<REQUEST> requestClazz, @NotNull Class<RESPONSE> responseClazz) {
+            this.requestSerializer = RedisSerializableMessage.serializerOf(requestClazz);
+            this.responseParser = RedisSerializableMessage.deserializerOf(responseClazz);
         }
 
-        public Builder<REQUEST, RESPONSE> requester(@NotNull String channel,
-                                                    @NotNull BiConsumer<ByteArrayDataOutput, REQUEST> serializer) {
-            return requester(channel, null, serializer);
+        public Builder<KEY, REQUEST, RESPONSE> at(@NotNull String channel) {
+            return requestAt(channel + RedisChannel.CHANNEL_DELIMITER + "request")
+                    .responseAt(channel + RedisChannel.CHANNEL_DELIMITER + "response");
         }
 
-        public Builder<REQUEST, RESPONSE> requester(@NotNull String channel,
-                                                    @Nullable Predicate<RedisMessage> filter,
-                                                    @NotNull BiConsumer<ByteArrayDataOutput, REQUEST> serializer) {
+        public Builder<KEY, REQUEST, RESPONSE> requestAt(@NotNull String channel) {
             this.requestChannel = channel;
-            this.requestFilter = filter;
+            return this;
+        }
+
+        public Builder<KEY, REQUEST, RESPONSE> responseAt(@NotNull String channel) {
+            this.responseChannel = channel;
+            return this;
+        }
+
+        public Builder<KEY, REQUEST, RESPONSE> keys(@NotNull Function<REQUEST, KEY> requestKey,
+                                                    @NotNull Function<RedisMessage, KEY> responseKey) {
+            return requestKey(requestKey).responseKey(responseKey);
+        }
+
+        public Builder<KEY, REQUEST, RESPONSE> requestKey(@NotNull Function<REQUEST, KEY> keyFunction) {
+            this.requestKey = keyFunction;
+            return this;
+        }
+
+        public Builder<KEY, REQUEST, RESPONSE> responseKey(@NotNull Function<RedisMessage, KEY> keyFunction) {
+            this.responseKey = keyFunction;
+            return this;
+        }
+
+        public Builder<KEY, REQUEST, RESPONSE> request(@NotNull BiConsumer<ByteArrayDataOutput, REQUEST> serializer) {
             this.requestSerializer = serializer;
             return this;
         }
 
-        public Builder<REQUEST, RESPONSE> responser(@NotNull String channel,
-                                                    @NotNull BiConsumer<ByteArrayDataOutput, RESPONSE> serializer) {
-            return responser(channel, null, serializer);
-        }
-
-        public Builder<REQUEST, RESPONSE> responser(@NotNull String channel,
-                                                    @Nullable Predicate<RedisMessage> filter,
-                                                    @NotNull BiConsumer<ByteArrayDataOutput, RESPONSE> serializer) {
-            this.responseChannel = channel;
-            this.responseFilter = filter;
-            this.responseSerializer = serializer;
+        public Builder<KEY, REQUEST, RESPONSE> response(@NotNull Function<RedisMessage, RESPONSE> parser) {
+            this.responseParser = parser;
             return this;
         }
 
-        public RedisCallback<REQUEST, RESPONSE> handle(Function<RedisMessage, RESPONSE> handler) {
+        public RedisCallback<KEY, REQUEST, RESPONSE> build() {
+            Objects.requireNonNull(requestChannel, "Request channel must be set.");
+            Objects.requireNonNull(responseChannel, "Response channel must be set.");
+            Objects.requireNonNull(requestSerializer, "Request serializer must be set.");
+            Objects.requireNonNull(requestKey, "Request key function must be set.");
+            Objects.requireNonNull(responseKey, "Response key function must be set.");
+            Objects.requireNonNull(responseParser, "Response parser must be set.");
+
             return new RedisCallback<>(
-                    Objects.requireNonNull(this.requestChannel),
-                    Objects.requireNonNull(this.responseChannel),
-                    this.requestFilter, this.responseFilter,
-                    Objects.requireNonNull(this.requestSerializer),
-                    Objects.requireNonNull(this.responseSerializer),
-                    Objects.requireNonNull(handler)
+                    requestChannel, responseChannel,
+                    requestKey, responseKey,
+                    requestSerializer, responseParser
             );
         }
+
+
     }
 
 
