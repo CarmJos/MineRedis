@@ -19,7 +19,6 @@ jobs:
         with:
           java-version: '8'
           distribution: 'adopt'
-          cache: maven
           server-id: github
           server-username: MAVEN_USERNAME
           server-password: MAVEN_TOKEN
@@ -53,7 +52,6 @@ jobs:
         with:
           java-version: '8'
           distribution: 'adopt'
-          cache: maven
 
       - name: "Maven Deploy"
         run: mvn -B -Plocal deploy --file pom.xml -DskipTests -Dgpg.skip
@@ -128,7 +126,6 @@ jobs:
         with:
           java-version: '8'
           distribution: 'adopt'
-          cache: maven
           server-id: central
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
