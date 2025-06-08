@@ -8,8 +8,6 @@ import demo.callback.RegisterRequest;
 import demo.callback.RegisterResponse;
 import demo.callback.TeleportRequest;
 
-import java.util.concurrent.TimeUnit;
-
 public interface RedisChannelsDemo {
 
     RedisChannel TEST_REQUEST = RedisChannel.at("test.request").handle(m -> {
@@ -39,8 +37,8 @@ public interface RedisChannelsDemo {
     static void demo() {
         //noinspection Since15
         REGISTER.call(new RegisterRequest("Handsome_Carm"))
-                .thenAccept(resp -> System.out.println("Register result: " + resp.isSuccess()))
-                .orTimeout(2, TimeUnit.SECONDS); // 可设置超时时间，建议设置。
+//                .orTimeout(2, TimeUnit.SECONDS) // 可设置超时时间，建议设置。
+                .thenAccept(resp -> System.out.println("Register result: " + resp.isSuccess()));
     }
 
 
