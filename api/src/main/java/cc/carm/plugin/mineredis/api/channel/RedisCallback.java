@@ -21,6 +21,7 @@ public class RedisCallback<KEY, REQUEST, RESPONSE> implements RedisMessageListen
     /**
      * 创建一个新的 RedisCallback.Builder 实例，用于构建 RedisCallback。
      *
+     * @param keyClass      请求和响应的键类型，用于标识请求和响应的唯一性。
      * @param requestClazz  请求消息的类类型，用于序列化和反序列化。
      * @param responseClazz 响应消息的类类型，用于解析响应。
      * @param <KEY>         请求和响应的键类型，用于标识请求和响应的唯一性。
