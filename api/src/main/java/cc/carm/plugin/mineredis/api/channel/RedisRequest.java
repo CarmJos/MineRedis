@@ -120,7 +120,10 @@ public class RedisRequest<MSG> implements RedisMessageListener {
         }
 
         public RedisRequest<REQUEST> handle(@Nullable BiFunction<RedisMessage, REQUEST, PreparedRedisMessage> handler) {
-            if (handler == null) return build();
+            if (handler == null) return new RedisRequest<>(
+                    this.requestChannel, this.filter,
+                    this.serializer, null
+            );
             if (this.deserializer == null) {
                 throw new IllegalStateException("Deserializer must be set before using REQUEST handler");
             }
@@ -133,7 +136,7 @@ public class RedisRequest<MSG> implements RedisMessageListener {
         }
 
         public RedisRequest<REQUEST> build() {
-            return handle((BiFunction<RedisMessage, REQUEST, PreparedRedisMessage>) null);
+            return handle((Function<RedisMessage, PreparedRedisMessage>) null);
         }
     }
 }
