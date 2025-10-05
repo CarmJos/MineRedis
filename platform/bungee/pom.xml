@@ -46,7 +46,7 @@
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.18-R0.1-SNAPSHOT</version>
+            <version>1.21-R0.4</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.18-R0.1-SNAPSHOT</version>
+            <version>1.21-R0.4</version>
             <type>javadoc</type>
             <scope>provided</scope>
         </dependency>
