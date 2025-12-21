@@ -29,7 +29,7 @@ jobs:
         run: mvn -B package --file pom.xml -Dgpg.skip
 
       - name: "Upload assets"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: assets
           path: ".asset/*.jar"
@@ -37,7 +37,7 @@ jobs:
           include-hidden-files: true
 
       - name: "Upload artifacts"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifacts
           path: "**/target/"
