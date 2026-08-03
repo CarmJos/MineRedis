@@ -1,7 +1,7 @@
 package cc.carm.plugin.mineredis;
 
-import cc.carm.lib.configuration.EasyConfiguration;
-import cc.carm.lib.configuration.yaml.YAMLConfigProvider;
+import cc.carm.lib.configuration.source.ConfigurationHolder;
+import cc.carm.lib.configuration.source.yaml.YAMLConfigFactory;
 import cc.carm.lib.githubreleases4j.GithubReleases4J;
 import cc.carm.plugin.mineredis.api.RedisManager;
 import cc.carm.plugin.mineredis.command.MineRedisCommand;
@@ -28,7 +28,7 @@ public class MineRedisCore implements IMineRedis {
 
     protected final MineRedisPlatform platform;
 
-    protected final YAMLConfigProvider configProvider;
+    protected final ConfigurationHolder<?> configProvider;
     protected final PluginConfiguration config;
 
 
@@ -39,7 +39,7 @@ public class MineRedisCore implements IMineRedis {
         this.platform = platform;
 
         getLogger().info("加载配置文件...");
-        this.configProvider = EasyConfiguration.from(new File(platform.getPluginFolder(), "config.yml"));
+        this.configProvider = YAMLConfigFactory.from(new File(platform.getPluginFolder(), "config.yml")).build();
         this.config = new PluginConfiguration();
         this.configProvider.initialize(this.config);
 
